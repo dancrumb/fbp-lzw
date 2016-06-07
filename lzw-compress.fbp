@@ -1,0 +1,17 @@
+#'input.txt' -> FILE READER(jsfbp/breader) OUT -> NEXT ENCODER(/Encoder)
+
+'input.txt' -> FILE READER(jsfbp/breader) OUT -> IN DICT_FROM_FILE(/DictionaryFromFile)
+'output' -> FILE WRITER(jsfbp/bwriter)
+
+#'7' -> SIZE DICTGEN(/DictionaryGenerator) DICT -> DICT_IN ENCODER
+
+DICT_FROM_FILE OUT -> NEXT ENCODER(/Encoder)
+DICT_FROM_FILE DICT -> IN REPL(jsfbp/repl) OUT[0] -> DICT_IN ENCODER
+
+SEQGEN (/SequenceGenerator) OUT -> SEQ_IN ENCODER
+ENCODER SEQ_OUT -> IN PASSTHRU(jsfbp/passthru) OUT -> SEQ_IN ENCODER
+
+ENCODER DICT_OUT -> IN PASSTHRU2(jsfbp/passthru) OUT -> DICT_IN ENCODER
+
+ENCODER SYM -> SYM BBUILDER(/ByteBuilder) BYTE -> BYTE ZIPBUILDER(/ZipBuilder) OUT -> IN WRITER
+REPL OUT[1] -> DICT ZIPBUILDER

@@ -1,0 +1,33 @@
+{
+  "name": "fbp-lzw",
+  "version": "1.0.0",
+  "description": "FBP Implementation of LZW algorithm",
+  "main": "compress.js",
+  "scripts": {
+    "test": "mocha --recursive -R spec --require test/test_helper.js test/*.spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dancrumb/fbp-lzw.git"
+  },
+  "keywords": [
+    "fbp",
+    "lzw"
+  ],
+  "author": "Dan Rumney <dancrumb@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dancrumb/fbp-lzw/issues"
+  },
+  "homepage": "https://github.com/dancrumb/fbp-lzw#readme",
+  "dependencies": {
+    "jsfbp": "^1.1.0",
+    "lodash": "^4.13.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^2.10.2",
+    "eslint-config-defaults": "^9.0.0",
+    "mocha": "^2.5.3"
+  }
+}
