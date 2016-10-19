@@ -2,7 +2,7 @@ var Dictionary = require('../Dictionary');
 
 module.exports = function zipBuilder() {
   var dictPort = this.openInputPort('DICT');
-  var bytePort = this.openInputPort('BYTE');
+  var bytePort = this.openInputPort('IN');
 
   var outPort = this.openOutputPort('OUT');
 
@@ -15,7 +15,7 @@ module.exports = function zipBuilder() {
 
   var dictionary = Dictionary.fromEntries(ip.contents);
   this.dropIP(ip);
-  
+
   var symbols = dictionary.getInitialSymbols();
   var symSize = dictionary.initialSymSize;
   var symLength = symbols.length;

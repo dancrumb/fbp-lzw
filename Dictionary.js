@@ -1,13 +1,18 @@
 var _ = require('lodash');
 
 function findSeqEntry(sequence, dictionary) {
-  return sequence.reduce(function (previousEntry, seqByte) {
-    if (previousEntry) {
-      return previousEntry[seqByte];
-    } else {
-      return null;
-    }
-  }, dictionary);
+  var symCount = sequence.length;
+  if(symCount === 0) {
+    return dictionary;
+  }
+  var seqEntry = dictionary;
+  var i = 0;
+  while(seqEntry !== undefined && i < symCount) {
+    seqEntry = seqEntry[sequence[i]];
+    i++;
+  }
+
+  return _.isUndefined(seqEntry) ? null : seqEntry;
 }
 
 var Dictionary = function () {
@@ -70,13 +75,14 @@ Object.__defineGetter__('symSize', function () {
 
 var reduce = function (entry) {
   var cSym = entry.cSym;
-  return Object.keys(entry).reduce(function (maxSym, char) {
+  var reducto = function (maxSym, char) {
     if (char === "cSym") {
       return maxSym;
     } else {
       return reduce(entry[char]);
     }
-  }, cSym);
+  };
+  return Object.keys(entry).reduce(reducto, cSym);
 };
 
 function getSymSize(lastKey) {

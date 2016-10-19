@@ -8,13 +8,27 @@ var Dictionary = require('../Dictionary');
 module.exports = function dictgen() {
   "use strict";
 
-  var sizeInPort = this.openInputPort('SIZE');
-  var sizeIP = sizeInPort.receive();
-  var size = sizeIP.contents;
-  this.dropIP(sizeIP);
+  var inPort = this.openInputPort('IN');
+  var syms = {};
 
-  var dictionary = Dictionary.build(size);
+  var symIP = inPort.receive();
+  if(symIP.type !== this.IPTypes.OPEN) {
+    console.log(symIP);
+    throw "Unexpected IP";
+  }
+  this.dropIP(symIP);
 
-  var dictOutPort = this.openOutputPort('DICT');
+  while((symIP =inPort.receive()) !== null) {
+    if(symIP.type !== this.IPTypes.CLOSE) {
+      syms[symIP.contents] = true;
+    }
+    this.dropIP(symIP);
+  }
+
+  var dictionary = Dictionary.fromSymbolList(Object.keys(syms));
+
+  var dictOutPort = this.openOutputPort('OUT');
   dictOutPort.send(this.createIP(dictionary.entries));
+
+  inPort.close();
 };

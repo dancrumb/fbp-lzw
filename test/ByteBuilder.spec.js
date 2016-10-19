@@ -10,8 +10,8 @@ function getTestNetwork(source, result) {
   var bbuilder = network.defProc(ByteBuilder, "bbuilder");
   var receiver = network.defProc(MockReceiver.generator(result), "receiver");
 
-  network.connect(sender, 'OUT', bbuilder, 'SYM');
-  network.connect(bbuilder, 'BYTE', receiver, 'IN');
+  network.connect(sender, 'OUT', bbuilder, 'IN');
+  network.connect(bbuilder, 'OUT', receiver, 'IN');
   return network;
 }
 

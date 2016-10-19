@@ -54,6 +54,7 @@ describe("Dictionary", function () {
 
     expect(dictionary).to.eql({
       entries: {0: {cSym: 0}, 1: {cSym: 1}, 2: {cSym: 2}, 3: {cSym: 3}},
+      "initialSymSize": 2,
       "lastKey": 3,
       "symSize": 2,
       __proto__: Dictionary.prototype

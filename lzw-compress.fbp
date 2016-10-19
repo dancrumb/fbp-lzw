@@ -1,17 +1,19 @@
-#'input.txt' -> FILE READER(jsfbp/breader) OUT -> NEXT ENCODER(/Encoder)
+'pg100.txt' -> FILE READER(jsfbp/breader)
+'1000000' -> SIZE READER
+'255' -> SIZE SYMGEN(/SymbolGenerator) OUT -> (26000) IN DICTGEN(/DictionaryGenerator)
 
-'input.txt' -> FILE READER(jsfbp/breader) OUT -> IN DICT_FROM_FILE(/DictionaryFromFile)
+
+DICTGEN OUT -> IN DICT_REPL(jsfbp/repl)
+READER OUT -> (20000) IN ENCODER(/Encoder)
+DICT_REPL OUT[0] -> DICT_IN ENCODER
+
+ENCODER OUT -> (20000) IN BBUILDER(/ByteBuilder)
+
+
+
 'output' -> FILE WRITER(jsfbp/bwriter)
+'20000' -> SIZE WRITER
+BBUILDER OUT -> (20000) IN ZIPBUILDER(/ZipBuilder) OUT -> (20000) IN WRITER
+DICT_REPL OUT[1] -> DICT ZIPBUILDER
 
-#'7' -> SIZE DICTGEN(/DictionaryGenerator) DICT -> DICT_IN ENCODER
-
-DICT_FROM_FILE OUT -> NEXT ENCODER(/Encoder)
-DICT_FROM_FILE DICT -> IN REPL(jsfbp/repl) OUT[0] -> DICT_IN ENCODER
-
-SEQGEN (/SequenceGenerator) OUT -> SEQ_IN ENCODER
-ENCODER SEQ_OUT -> IN PASSTHRU(jsfbp/passthru) OUT -> SEQ_IN ENCODER
-
-ENCODER DICT_OUT -> IN PASSTHRU2(jsfbp/passthru) OUT -> DICT_IN ENCODER
-
-ENCODER SYM -> SYM BBUILDER(/ByteBuilder) BYTE -> BYTE ZIPBUILDER(/ZipBuilder) OUT -> IN WRITER
-REPL OUT[1] -> DICT ZIPBUILDER
+#READER OUT -> (26000) IN WRITER

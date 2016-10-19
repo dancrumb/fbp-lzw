@@ -4,7 +4,7 @@
 var fbp = require('jsfbp');
 var fs = require('fs');
 
-global.trace = false;
+//global.trace = true;
 
 fs.readFile('./lzw-compress.fbp', 'utf-8', function(err, graph) {
   if(err) {

@@ -1,8 +1,12 @@
 var Dictionary = require('../Dictionary');
-var _ = require('lodash');
 
-function getCurrentSequence(port) {
+function getInitialSequence() {
   var sequence = [];
+  var port = this.openInputPort('SEQ_IN');
+  if(!port) {
+    return sequence;
+  }
+
   var ip = port.receive();
   if (ip.type !== this.IPTypes.OPEN) {
     throw new Error("Unexpected IP received");
@@ -16,26 +20,19 @@ function getCurrentSequence(port) {
     ip = port.receive()
   }
   this.dropIP(ip);
+  port.close();
 
   return sequence;
-}
-
-function sendCurrentSequence(port, sequence) {
-  port.send(this.createIPBracket(this.IPTypes.OPEN));
-  _.forEach(sequence, function (byte) {
-    port.send(this.createIP(byte));
-  }.bind(this));
-  port.send(this.createIPBracket(this.IPTypes.CLOSE));
 }
 
 function getNextChar(port) {
   var nextCharIP = port.receive();
   if (nextCharIP !== null) {
-    if(nextCharIP.type === this.IPTypes.OPEN) {
+    if (nextCharIP.type === this.IPTypes.OPEN) {
       this.dropIP(nextCharIP);
       nextCharIP = port.receive();
     }
-    if(nextCharIP !== null && nextCharIP.type === this.IPTypes.CLOSE) {
+    if (nextCharIP !== null && nextCharIP.type === this.IPTypes.CLOSE) {
       this.dropIP(nextCharIP);
       nextCharIP = null;
     }
@@ -56,57 +53,50 @@ module.exports = function encoder() {
   var dictIP = dictInPort.receive();
   var dictionary = Dictionary.fromEntries(dictIP.contents);
   this.dropIP(dictIP);
+  dictInPort.close();
 
+  var nextCharPort = this.openInputPort('IN');
 
-  var nextCharPort = this.openInputPort('NEXT');
-  var currSeqInPort = this.openInputPort('SEQ_IN');
+  var symOutPort = this.openOutputPort('OUT');
 
-  var currSeqOutPort = this.openOutputPort('SEQ_OUT');
-  var symOutPort = this.openOutputPort('SYM');
+  var currentSequence = getInitialSequence.call(this);
+  var nextChar;
 
-  //console.log("---");
-  var nextChar = getNextChar.call(this, nextCharPort);
+  while ((nextChar = getNextChar.call(this, nextCharPort)) !== null) {
+    if (currentSequence.length === 0) {
+      currentSequence =[nextChar];
 
-  var currentSequence = getCurrentSequence.call(this, currSeqInPort);
-
-  if (currentSequence.length === 0) {
-    sendCurrentSequence.call(this, currSeqOutPort, [nextChar]);
-    nextChar = getNextChar.call(this, nextCharPort);
-    currentSequence = getCurrentSequence.call(this, currSeqInPort);
-  }
-
-  var cSym = null;
-  if (nextChar !== null) {
-    cSym = dictionary.findSequence(currentSequence.concat(nextChar));
-  }
-  if (cSym === null) {
-    cSym = dictionary.findSequence(currentSequence);
-    if (cSym === null) {
-      throw new Error("Missing sequence: " + currentSequence);
+      nextChar = getNextChar.call(this, nextCharPort);
     }
-    var symIP = this.createIP({
-      cSym: cSym,
-      size: dictionary.symSize
-    });
-    symOutPort.send(symIP);
 
+    var cSym = null;
+    var newSequence = currentSequence.slice(0);
+    newSequence.push(nextChar);
+    
     if (nextChar !== null) {
-      dictionary.insertSequence(currentSequence.concat(nextChar));
-      sendCurrentSequence.call(this, currSeqOutPort, [nextChar]);
+      cSym = dictionary.findSequence(newSequence);
+    }
+    if (cSym === null) {
+      cSym = dictionary.findSequence(currentSequence);
+      if (cSym === null) {
+        throw new Error("Missing sequence: " + currentSequence);
+      }
+      var symIP = this.createIP({
+        cSym: cSym,
+        size: dictionary.symSize
+      });
+      symOutPort.send(symIP);
+
+      if (nextChar !== null) {
+        dictionary.insertSequence(newSequence);
+        currentSequence = [nextChar];
+      } else {
+        nextCharPort.close();
+      }
+
     } else {
-      dictInPort.close();
-      currSeqInPort.close();
-      nextCharPort.close();
+      currentSequence = newSequence;
     }
 
-  } else {
-    sendCurrentSequence.call(this, currSeqOutPort, currentSequence.concat(nextChar));
   }
-
-  if (nextChar !== null) {
-    var dictOutPort = this.openOutputPort('DICT_OUT');
-    dictOutPort.send(this.createIP(dictionary.entries));
-  }
-
-
 };

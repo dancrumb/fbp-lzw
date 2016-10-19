@@ -1,7 +1,7 @@
 
 module.exports = function bbuilder() {
-  var symPort = this.openInputPort('SYM');
-  var bytePort = this.openOutputPort('BYTE');
+  var symPort = this.openInputPort('IN');
+  var bytePort = this.openOutputPort('OUT');
   var acc = 0;
   var accSize = 0;
   var symIP;
